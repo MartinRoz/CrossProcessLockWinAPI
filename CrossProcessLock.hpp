@@ -11,7 +11,7 @@ enum class LockType {
 
 class CrossProcessLock {
     public:
-        CrossProcessLock(std::string lockName);
+        CrossProcessLock(std::wstring lockName);
         ~CrossProcessLock();
         
         DWORD lock(LockType lockType);

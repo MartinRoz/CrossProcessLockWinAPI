@@ -1,20 +1,20 @@
 #include "CrossProcessLock.hpp"
 #include <stdexcept>
 
-CrossProcessLock::CrossProcessLock(std::string lockName)
+CrossProcessLock::CrossProcessLock(std::wstring lockName)
 {
     DWORD mutexStatus;
-    std::string writeMutexName = lockName + "_write";
-    std::string readMutexName = lockName + "_read";
-    std::string sharedMemoryName = lockName + "_data";
+    std::wstring writeMutexName = lockName + L"_write";
+    std::wstring readMutexName = lockName + L"_read";
+    std::wstring sharedMemoryName = lockName + L"_data";
 
     /* get or create write mutex */
-    this->writeMutex = CreateMutex(NULL, FALSE, writeMutexName.c_str());
+    this->writeMutex = CreateMutexW(NULL, FALSE, writeMutexName.c_str());
     if (this->writeMutex == NULL)
         throw std::runtime_error("Failed to create mutex.");
 
     /* get or create read mutex */
-    this->readMutex = CreateMutex(NULL, TRUE, readMutexName.c_str());
+    this->readMutex = CreateMutexW(NULL, TRUE, readMutexName.c_str());
     if (this->readMutex == NULL)
     {
         CloseHandle(this->writeMutex);
@@ -23,7 +23,7 @@ CrossProcessLock::CrossProcessLock(std::string lockName)
     mutexStatus = GetLastError();
 
     /* get or create shared data */
-    this->sharedMemory = CreateFileMapping(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, sizeof(int), sharedMemoryName.c_str());
+    this->sharedMemory = CreateFileMappingW(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, sizeof(int), sharedMemoryName.c_str());
     if (this->sharedMemory == NULL)
     {
         CloseHandle(this->writeMutex);

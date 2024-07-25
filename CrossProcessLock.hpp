@@ -4,7 +4,8 @@
 #include <windows.h>
 #include <string>
 
-enum class LockType {
+enum class LockType unint8_t {
+    Unlocked,
     Read,
     Write
 };
@@ -16,6 +17,8 @@ class CrossProcessLock {
         
         DWORD lock(LockType lockType);
         DWORD release();
+
+        LockType getLockType();
 
     private:
         HANDLE writeMutex;

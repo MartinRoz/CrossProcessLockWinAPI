@@ -1,6 +1,8 @@
 #include "CrossProcessLock.hpp"
 #include <stdexcept>
 
+#define FIVE_SECONDS 5000
+
 CrossProcessLock::CrossProcessLock(std::wstring lockName)
 {
     DWORD mutexStatus;
@@ -59,18 +61,21 @@ DWORD CrossProcessLock::lock(LockType lockType)
     DWORD result;
     lockType = lockType;
 
+    if (lockType == LockType::Unlocked)
+        return WAIT_FAILED;
+
     if (lockType == LockType::Write)
-        return WaitForSingleObject(writeMutex, INFINITE);
+        return WaitForSingleObject(writeMutex, FIVE_SECONDS);
     
     //on read lock
-    result = WaitForSingleObject(readMutex, INFINITE);
+    result = WaitForSingleObject(readMutex, FIVE_SECONDS);
     if (result == WAIT_FAILED)
         return result;
     
     (*readCounter)++;
     if (*readCounter == 1) //first reader needs to write lock
     {
-        result = WaitForSingleObject(writeMutex, INFINITE);
+        result = WaitForSingleObject(writeMutex, FIVE_SECONDS);
         if (result == WAIT_FAILED)
         {
             (*readCounter)--;
@@ -84,10 +89,13 @@ DWORD CrossProcessLock::release()
 {
     DWORD result;
 
+    if (lockType == LockType::Unlocked)
+        return 0;
+    
     if (lockType == LockType::Write)
         return ReleaseMutex(writeMutex);
     
-    result = WaitForSingleObject(readMutex, INFINITE);
+    result = WaitForSingleObject(readMutex, FIVE_SECONDS);
     if (result == WAIT_FAILED)
         return result;
 
@@ -99,4 +107,9 @@ DWORD CrossProcessLock::release()
             (*readCounter)++;
     }
     return ReleaseMutex(readMutex) || result;
+}
+
+LockType CrossProcessLock::getLockType()
+{
+    return lockType;
 }

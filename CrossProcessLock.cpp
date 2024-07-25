@@ -41,7 +41,7 @@ CrossProcessLock::CrossProcessLock(std::wstring lockName)
     }
 
     /* if the mutex was first time created, init data */
-    if(mutexStatus != ERROR_ALREADY_EXISTS)
+    if (mutexStatus != ERROR_ALREADY_EXISTS)
         *readCounter = 0;
     ReleaseMutex(readMutex);
 }
@@ -59,19 +59,19 @@ DWORD CrossProcessLock::lock(LockType lockType)
     DWORD result;
     lockType = lockType;
 
-    if(lockType == LockType::Write)
+    if (lockType == LockType::Write)
         return WaitForSingleObject(writeMutex, INFINITE);
     
     //on read lock
     result = WaitForSingleObject(readMutex, INFINITE);
-    if(result == WAIT_FAILED)
+    if (result == WAIT_FAILED)
         return result;
     
     (*readCounter)++;
-    if(*readCounter == 1) //first reader needs to write lock
+    if (*readCounter == 1) //first reader needs to write lock
     {
         result = WaitForSingleObject(writeMutex, INFINITE);
-        if(result == WAIT_FAILED)
+        if (result == WAIT_FAILED)
         {
             (*readCounter)--;
             ReleaseMutex(readMutex);
@@ -84,18 +84,18 @@ DWORD CrossProcessLock::release()
 {
     DWORD result;
 
-    if(lockType == LockType::Write)
+    if (lockType == LockType::Write)
         return ReleaseMutex(writeMutex);
     
     result = WaitForSingleObject(readMutex, INFINITE);
-    if(result == WAIT_FAILED)
+    if (result == WAIT_FAILED)
         return result;
 
     (*readCounter)--;
-    if(*readCounter == 0)
+    if (*readCounter == 0)
     {
         result = ReleaseMutex(writeMutex);
-        if(result) //on failed release, restore counter
+        if (result) //on failed release, restore counter
             (*readCounter)++;
     }
     return ReleaseMutex(readMutex) || result;

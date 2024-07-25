@@ -10,6 +10,8 @@ CrossProcessLock::CrossProcessLock(std::wstring lockName)
     std::wstring readMutexName = lockName + L"_read";
     std::wstring sharedMemoryName = lockName + L"_data";
 
+    lockType = LockType::Unlocked;
+    
     /* get or create write mutex */
     writeMutex = CreateMutexW(NULL, FALSE, writeMutexName.c_str());
     if (writeMutex == NULL)
@@ -91,7 +93,7 @@ DWORD CrossProcessLock::release()
 
     if (lockType == LockType::Unlocked)
         return 0;
-    
+
     if (lockType == LockType::Write)
         return ReleaseMutex(writeMutex);
     
@@ -106,7 +108,9 @@ DWORD CrossProcessLock::release()
         if (result) //on failed release, restore counter
             (*readCounter)++;
     }
-    return ReleaseMutex(readMutex) || result;
+    result = ReleaseMutex(readMutex) || result;
+    lockType = LockType::Unlocked;
+    return result;
 }
 
 LockType CrossProcessLock::getLockType()

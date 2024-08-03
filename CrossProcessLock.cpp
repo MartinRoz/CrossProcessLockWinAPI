@@ -26,11 +26,11 @@ CrossProcessLock::CrossProcessLock(const std::wstring& lockName)
     mutexStatus = GetLastError();
 
     /* get or create shared data */
-    sharedMemory.setHandle(CreateFileMappingW(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, sizeof(int), sharedMemoryName.c_str()));
+    sharedMemory.setHandle(CreateFileMappingW(INVALID_HANDLE_VALUE, NULL, PAGE_READWRITE, 0, sizeof(*readCounter), sharedMemoryName.c_str()));
     if (sharedMemory.getHandle() == NULL)
         throw std::runtime_error("Failed to create shared memory.");
 
-    readCounter = (int*)MapViewOfFile(sharedMemory.getHandle(), FILE_MAP_ALL_ACCESS, 0, 0, sizeof(int));
+    readCounter = (int*)MapViewOfFile(sharedMemory.getHandle(), FILE_MAP_ALL_ACCESS, 0, 0, sizeof(*readCounter));
     if (readCounter == NULL)
         throw std::runtime_error("Failed to map view of shared memory.");
 

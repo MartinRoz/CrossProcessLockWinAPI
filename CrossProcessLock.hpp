@@ -1,31 +1,32 @@
-#ifndef CROSSPROCESSLOCK_HPP
-#define CROSSPROCESSLOCK_HPP
-
+#pragma once
 #include <windows.h>
 #include <string>
+#include <cstdint>
+#include "ScopedHandle.hpp"
 
-enum class LockType unint8_t {
+enum class LockType : uint8_t
+{
     Unlocked,
     Read,
     Write
 };
 
-class CrossProcessLock {
-    public:
-        CrossProcessLock(std::wstring lockName);
-        ~CrossProcessLock();
-        
-        DWORD lock(LockType lockType);
-        DWORD release();
 
-        LockType getLockType();
+class CrossProcessLock
+{
+public:
+    CrossProcessLock(const std::wstring& lockName);
+    ~CrossProcessLock();
+    
+    DWORD lock(LockType lockType);
+    DWORD release();
 
-    private:
-        HANDLE writeMutex;
-        HANDLE readMutex;
-        HANDLE sharedMemory;
-        int* readCounter;
-        LockType lockType;
+    LockType getLockType();
+
+private:
+    ScopedHandle writeMutex;
+    ScopedHandle readMutex;
+    ScopedHandle sharedMemory;
+    int* readCounter;
+    LockType lockType;
 };
-
-#endif // CROSSPROCESSLOCK_HPP
